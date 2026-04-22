@@ -1,0 +1,1895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Up & Up — Advent International</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,600;0,700;0,900;1,300&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: auto; }
+body {
+  font-family: 'Inter', Arial, sans-serif;
+  background: #010E34;
+  color: #fff;
+  overflow-x: hidden;
+}
+
+:root {
+  --navy:      #022479;
+  --blue:      #0038FF;
+  --blue-mid:  #269AFF;
+  --blue-light:#77CEFF;
+  --gold:      #E1B523;
+  --offwhite:  #F5F2EB;
+  --gray:      #999893;
+  --dark:      #010E34;
+}
+
+/* ═══════════════════════════════════════════
+   PROGRESS BAR
+═══════════════════════════════════════════ */
+#progress {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: rgba(255,255,255,0.07);
+  z-index: 500;
+}
+#progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--gold);
+  transition: width 0.08s linear;
+}
+
+/* ═══════════════════════════════════════════
+   NAV
+═══════════════════════════════════════════ */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 400;
+  padding: 22px 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(1,14,52,0.92) 0%, transparent 100%);
+}
+.logo { font-weight: 700; font-size: 14px; letter-spacing: 0.06em; }
+.logo span { color: var(--gold); }
+.nav-tag {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--gray);
+}
+
+/* Machine label — transitions from ELEVATOR to ESCALATOR */
+#machine-label {
+  position: fixed;
+  bottom: 32px; right: 48px;
+  z-index: 400;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+#machine-label.visible { opacity: 1; }
+
+/* ═══════════════════════════════════════════
+   LEFT RAIL — transforms from elevator shaft to escalator
+═══════════════════════════════════════════ */
+#left-rail {
+  position: fixed;
+  left: 0; top: 0;
+  width: 72px;
+  height: 100vh;
+  z-index: 300;
+  pointer-events: none;
+  overflow: hidden;
+  /* Dark panel */
+  background: linear-gradient(to right, rgba(1,8,28,0.96) 0%, rgba(1,8,28,0.7) 80%, transparent 100%);
+  transition: background 0.8s ease;
+}
+
+/* ── ELEVATOR SHAFT MODE ── */
+/* Vertical cable lines */
+.shaft-cable {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom,
+    transparent 0%,
+    rgba(38,154,255,0.3) 10%,
+    rgba(38,154,255,0.5) 50%,
+    rgba(38,154,255,0.3) 90%,
+    transparent 100%
+  );
+  transition: opacity 0.8s ease;
+}
+.shaft-cable.c1 { left: 16px; }
+.shaft-cable.c2 { left: 30px; }
+.shaft-cable.c3 { left: 44px; }
+.shaft-cable.c4 { left: 58px; }
+
+/* Horizontal floor lines */
+.shaft-floor-line {
+  position: absolute;
+  left: 8px; right: 4px;
+  height: 1px;
+  background: rgba(38,154,255,0.18);
+  transition: opacity 0.8s ease;
+}
+
+/* The elevator car — moves up the shaft */
+#elevator-car {
+  position: absolute;
+  left: 8px;
+  width: 52px;
+  height: 56px;
+  z-index: 10;
+  transition: opacity 0.8s ease, transform 0.05s linear;
+  will-change: transform;
+}
+
+.car-body {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #1a2e6e 0%, #0d1840 100%);
+  border: 1.5px solid rgba(38,154,255,0.5);
+  border-radius: 3px;
+  overflow: hidden;
+  box-shadow: 0 0 16px rgba(0,56,255,0.35), 0 0 40px rgba(0,56,255,0.1);
+}
+
+/* Door seam */
+.car-body::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 50%;
+  width: 1px;
+  background: rgba(38,154,255,0.6);
+}
+
+/* Panel lines */
+.car-panel {
+  position: absolute;
+  left: 6px; right: 6px;
+  top: 8px;
+  height: 2px;
+  background: rgba(38,154,255,0.35);
+  border-radius: 1px;
+}
+.car-panel.p2 { top: 14px; width: 60%; }
+.car-panel.p3 { top: 20px; }
+
+/* Cable attachment */
+.car-cable {
+  position: absolute;
+  top: -100vh;
+  left: 50%;
+  width: 1px;
+  height: 100vh;
+  background: linear-gradient(to top, rgba(38,154,255,0.4), transparent);
+  transform: translateX(-50%);
+}
+
+/* Counterweight */
+#counterweight {
+  position: absolute;
+  left: 46px;
+  width: 18px;
+  height: 28px;
+  background: linear-gradient(135deg, #0d1840 0%, #060e28 100%);
+  border: 1px solid rgba(38,154,255,0.2);
+  border-radius: 2px;
+  z-index: 9;
+  will-change: transform;
+  transition: opacity 0.8s ease;
+}
+
+/* ── ESCALATOR MODE ── */
+/* These appear when in escalator half */
+.esc-rail-line {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 3px;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+  background: linear-gradient(to bottom,
+    transparent 0%,
+    #1a3a8a 8%,
+    #2a5acc 50%,
+    #1a3a8a 92%,
+    transparent 100%
+  );
+}
+.esc-rail-line::after {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 1px;
+  background: rgba(38,154,255,0.4);
+}
+.esc-rail-line.er1 { left: 14px; }
+.esc-rail-line.er2 { left: 48px; }
+
+/* Escalator steps in the rail */
+.rail-step {
+  position: absolute;
+  left: 8px;
+  width: 52px;
+  height: 13px;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+  will-change: transform;
+}
+.rail-step-tread {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 9px;
+  background: linear-gradient(to bottom, #1e3a7a 0%, #122055 100%);
+  border-top: 1px solid rgba(38,154,255,0.5);
+  border-radius: 2px 2px 0 0;
+}
+.rail-step-riser {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 5px;
+  background: #0d1a44;
+}
+.rail-step-shine {
+  position: absolute;
+  bottom: 2px; left: 4px; right: 4px;
+  height: 1.5px;
+  background: linear-gradient(to right, transparent, rgba(38,154,255,0.5), transparent);
+  border-radius: 1px;
+}
+
+/* Escalator handrail */
+#esc-handrail {
+  position: absolute;
+  left: 6px;
+  width: 56px;
+  height: 14px;
+  background: linear-gradient(to bottom, #2a2a3a 0%, #1a1a28 60%, #0f0f1e 100%);
+  border: 1px solid rgba(100,120,200,0.25);
+  border-radius: 7px;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+  will-change: transform;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  z-index: 11;
+}
+#esc-handrail::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px, transparent 5px,
+    rgba(255,255,255,0.04) 5px, rgba(255,255,255,0.04) 6px
+  );
+  border-radius: 5px;
+}
+
+/* ── FLOOR DISPLAY ── */
+#floor-display {
+  position: fixed;
+  left: 0;
+  bottom: 24px;
+  width: 72px;
+  z-index: 401;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+#floor-display.visible { opacity: 1; }
+
+.floor-screen {
+  width: 50px;
+  height: 36px;
+  background: #010810;
+  border: 1px solid rgba(38,154,255,0.4);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 12px rgba(0,56,255,0.3), inset 0 0 6px rgba(0,56,255,0.1);
+}
+.floor-num {
+  font-family: 'Courier New', monospace;
+  font-size: 19px;
+  font-weight: 700;
+  color: #6ef;
+  text-shadow: 0 0 8px rgba(100,238,255,0.85);
+  letter-spacing: 0.05em;
+}
+.floor-lbl {
+  font-size: 7px; font-weight: 700;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--gray);
+}
+.floor-arrow {
+  font-size: 9px;
+  color: var(--gold);
+  animation: arrowPulse 1.2s ease-in-out infinite;
+}
+@keyframes arrowPulse {
+  0%,100% { transform: translateY(0); opacity: 1; }
+  50%      { transform: translateY(-3px); opacity: 0.6; }
+}
+
+/* ═══════════════════════════════════════════
+   SECTION BASE
+═══════════════════════════════════════════ */
+section { position: relative; overflow: hidden; }
+
+/* ═══════════════════════════════════════════
+   ── HALF 1: ELEVATOR ──
+═══════════════════════════════════════════ */
+
+/* S1: HERO */
+#s-hero {
+  min-height: 100vh;
+  background: var(--dark);
+  display: flex;
+  align-items: center;
+  padding: 120px 56px 80px 144px;
+}
+
+.hero-kicker {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 28px;
+  opacity: 0; transform: translateY(14px);
+  animation: up 0.7s 0.4s ease forwards;
+}
+.hero-h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(72px, 11vw, 148px);
+  font-weight: 900;
+  line-height: 0.87;
+  letter-spacing: -0.03em;
+  color: #fff;
+  margin-bottom: 36px;
+  opacity: 0; transform: translateY(20px);
+  animation: up 0.85s 0.6s ease forwards;
+}
+.hero-h1 em {
+  font-style: italic;
+  background: linear-gradient(100deg, var(--blue) 0%, var(--blue-mid) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-sub {
+  font-size: clamp(16px, 2vw, 20px);
+  font-weight: 300; line-height: 1.7;
+  color: rgba(255,255,255,0.5);
+  max-width: 480px;
+  opacity: 0;
+  animation: up 0.8s 0.9s ease forwards;
+}
+.scroll-nudge {
+  position: absolute;
+  bottom: 44px; left: 144px;
+  display: flex; align-items: center; gap: 12px;
+  opacity: 0;
+  animation: up 0.7s 1.4s ease forwards;
+}
+.scroll-nudge span {
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--gold);
+}
+.nudge-car {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.nudge-stripe {
+  width: 20px; height: 4px;
+  background: rgba(38,154,255,0.35);
+  border-radius: 1px;
+  border-top: 1px solid rgba(38,154,255,0.55);
+}
+.nudge-stripe:nth-child(2) { opacity: 0.6; width: 16px; }
+.nudge-stripe:nth-child(3) { opacity: 0.3; width: 12px; }
+
+/* S2: DOOR OPEN STATS — sticky */
+#s-doors-wrap {
+  min-height: 350vh;
+  background: var(--dark);
+  position: relative;
+}
+#s-doors {
+  position: sticky;
+  top: 0; height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+
+/* Big ambient floor number behind everything */
+.ambient-floor {
+  position: absolute;
+  font-family: 'Playfair Display', serif;
+  font-size: 40vw;
+  font-weight: 900;
+  color: rgba(255,255,255,0.02);
+  line-height: 1;
+  user-select: none;
+  pointer-events: none;
+  z-index: 0;
+  letter-spacing: -0.06em;
+  transition: opacity 0.4s ease;
+}
+
+/* Elevator car visual — big, centered */
+.big-elevator {
+  position: relative;
+  width: 320px;
+  height: 380px;
+  z-index: 10;
+}
+
+.big-car-body {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, #112060 0%, #080f30 100%);
+  border: 2px solid rgba(38,154,255,0.3);
+  border-radius: 6px 6px 0 0;
+  overflow: hidden;
+  box-shadow: 0 0 60px rgba(0,56,255,0.2), 0 0 120px rgba(0,56,255,0.06);
+}
+
+/* Door panels inside the car */
+.big-door {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 50%;
+  background: linear-gradient(to bottom, #1c2a5e 0%, #0c1540 70%, #060d28 100%);
+  border: 1px solid rgba(38,154,255,0.2);
+  transition: transform 1s cubic-bezier(0.77, 0, 0.18, 1);
+  overflow: hidden;
+}
+.big-door.left  { left: 0; border-right: none; transform-origin: left; }
+.big-door.right { right: 0; border-left: none; transform-origin: right; }
+.big-door.open.left  { transform: translateX(-100%); }
+.big-door.open.right { transform: translateX(100%); }
+
+/* Door detail lines */
+.big-door::before {
+  content: '';
+  position: absolute;
+  left: 12px; right: 12px; top: 20px; bottom: 20px;
+  border: 1px solid rgba(38,154,255,0.1);
+  border-radius: 2px;
+}
+
+/* Center seam */
+.big-car-body::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; left: 50%;
+  width: 2px;
+  background: linear-gradient(to bottom, transparent, rgba(38,154,255,0.5) 20%, rgba(38,154,255,0.5) 80%, transparent);
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* Floor indicator above car */
+.big-floor-indicator {
+  position: absolute;
+  top: -52px; left: 50%;
+  transform: translateX(-50%);
+  width: 130px; height: 44px;
+  background: #010810;
+  border: 1px solid rgba(38,154,255,0.5);
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  gap: 14px;
+  box-shadow: 0 0 20px rgba(0,56,255,0.4);
+}
+.bfi-num {
+  font-family: 'Courier New', monospace;
+  font-size: 26px; font-weight: 700;
+  color: #6ef;
+  text-shadow: 0 0 10px rgba(100,238,255,0.9);
+}
+.bfi-arrow {
+  font-size: 18px;
+  color: var(--gold);
+}
+
+/* Cables above car */
+.big-cables {
+  position: absolute;
+  bottom: 100%; left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 80px;
+  display: flex; justify-content: space-around;
+}
+.cable-line {
+  width: 1.5px;
+  height: 100%;
+  background: linear-gradient(to top, rgba(38,154,255,0.4), transparent);
+}
+
+/* Base / threshold */
+.big-car-base {
+  position: absolute;
+  bottom: -12px; left: -12px; right: -12px;
+  height: 12px;
+  background: linear-gradient(to bottom, #0a1230, #060c20);
+  border: 1px solid rgba(38,154,255,0.15);
+  border-top: none;
+}
+
+/* Stat revealed behind doors */
+.door-reveal {
+  position: absolute;
+  inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: 32px;
+  background: radial-gradient(ellipse at center, #0d1f5a 0%, #060e28 100%);
+  opacity: 0;
+  transition: opacity 0.4s 0.6s ease;
+}
+.door-reveal.visible { opacity: 1; }
+.reveal-num {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(52px, 8vw, 88px);
+  font-weight: 900;
+  background: linear-gradient(90deg, var(--blue) 0%, var(--blue-mid) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1; margin-bottom: 14px;
+}
+.reveal-label {
+  font-size: 13px; font-weight: 600;
+  color: rgba(255,255,255,0.85);
+  margin-bottom: 6px;
+}
+.reveal-sub {
+  font-size: 11px; color: var(--gray);
+  max-width: 220px; line-height: 1.6;
+}
+
+/* Sidebar copy next to the elevator */
+.door-sidebar {
+  position: absolute;
+  right: 8%;
+  top: 50%;
+  transform: translateY(-50%);
+  max-width: 280px;
+  opacity: 0;
+  transform: translateY(-50%) translateX(24px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.door-sidebar.visible {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+.sidebar-eyebrow {
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 12px;
+}
+.sidebar-h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px; font-weight: 700;
+  line-height: 1.2; color: #fff;
+  margin-bottom: 12px;
+}
+.sidebar-body {
+  font-size: 13px; line-height: 1.7;
+  color: rgba(255,255,255,0.5);
+}
+
+/* S3: TIMELINE — dark, floors */
+#s-timeline {
+  background: #020c2a;
+  padding: 120px 56px 120px 144px;
+}
+.tl-header { max-width: 600px; margin-bottom: 72px; }
+.eyebrow {
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 14px;
+}
+.section-h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(36px, 5vw, 58px);
+  font-weight: 900; line-height: 1.05;
+  letter-spacing: -0.02em; color: #fff;
+  margin-bottom: 18px;
+}
+.gold-bar { width: 36px; height: 3px; background: var(--gold); }
+.floors-grid { max-width: 820px; }
+.floor-row {
+  display: flex; align-items: stretch;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  opacity: 0; transform: translateX(-24px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.floor-row:last-child { border-bottom: 1px solid rgba(255,255,255,0.06); }
+.floor-row.revealed { opacity: 1; transform: translateX(0); }
+.floor-row:hover { background: rgba(0,56,255,0.05); }
+.fl-num-col {
+  width: 72px; flex-shrink: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: flex-start;
+  padding: 26px 0;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  gap: 4px;
+}
+.fl-num {
+  font-family: 'Courier New', monospace;
+  font-size: 12px; color: #6ef;
+  text-shadow: 0 0 6px rgba(100,238,255,0.6);
+  font-weight: 700;
+}
+.fl-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--blue);
+  box-shadow: 0 0 6px var(--blue);
+}
+.fl-year-col {
+  width: 84px; flex-shrink: 0;
+  padding: 26px 16px 26px 14px;
+  display: flex; align-items: flex-start; justify-content: flex-end;
+  border-right: 1px solid rgba(255,255,255,0.06);
+}
+.fl-year { font-size: 11px; font-weight: 700; color: var(--gold); letter-spacing: 0.04em; }
+.fl-content-col { flex: 1; padding: 26px 28px; }
+.fl-event {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px; font-weight: 700;
+  color: #fff; margin-bottom: 6px; line-height: 1.2;
+}
+.fl-detail { font-size: 13px; line-height: 1.65; color: rgba(255,255,255,0.48); }
+
+/* ═══════════════════════════════════════════
+   ── TRANSITION: ELEVATOR → ESCALATOR ──
+═══════════════════════════════════════════ */
+#s-transition {
+  min-height: 80vh;
+  background: linear-gradient(to bottom, #020c2a 0%, var(--offwhite) 100%);
+  display: flex; align-items: center; justify-content: center;
+  text-align: center; padding: 80px 56px;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.transition-label {
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.3em; text-transform: uppercase;
+  margin-bottom: 24px;
+  opacity: 0; transition: opacity 0.7s ease;
+}
+.transition-label.revealed { opacity: 1; }
+
+.transition-h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(32px, 5vw, 60px);
+  font-weight: 900; line-height: 1.1;
+  letter-spacing: -0.02em;
+  max-width: 660px;
+  opacity: 0; transform: translateY(16px);
+  transition: opacity 0.7s 0.1s ease, transform 0.7s 0.1s ease;
+}
+.transition-h2.revealed { opacity: 1; transform: translateY(0); }
+
+/* Transition machine swap graphic */
+.machine-swap {
+  display: flex; align-items: center; gap: 48px;
+  margin-top: 48px;
+  opacity: 0; transition: opacity 0.7s 0.3s ease;
+}
+.machine-swap.revealed { opacity: 1; }
+
+.machine-icon {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 10px;
+  opacity: 0.3; transition: opacity 0.4s ease;
+}
+.machine-icon.active { opacity: 1; }
+.machine-icon span {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.swap-arrow { font-size: 24px; opacity: 0.4; }
+
+/* Little elevator SVG icon */
+.icon-elevator {
+  width: 40px; height: 52px;
+  border: 2px solid currentColor; border-radius: 3px;
+  position: relative; overflow: hidden;
+}
+.icon-elevator::after {
+  content: '';
+  position: absolute; top: 0; bottom: 0; left: 50%;
+  width: 1px; background: currentColor; opacity: 0.5;
+}
+
+/* Little escalator SVG icon */
+.icon-escalator {
+  width: 52px; height: 36px; position: relative;
+}
+.esc-icon-steps {
+  position: absolute;
+  width: 100%; height: 100%;
+}
+
+/* ═══════════════════════════════════════════
+   ── HALF 2: ESCALATOR ──
+═══════════════════════════════════════════ */
+
+/* S4: ESCALATOR RIDE — tall wrapper, sticky child fills all scroll */
+#s-esc-wrap {
+  height: 900vh;          /* total scroll budget */
+  background: #0a0f2a;   /* fills the whole tall wrapper so no white gap */
+  position: relative;
+}
+#s-esc {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background: #0a0f2a;
+}
+
+/* Full-screen SVG escalator lives here */
+#esc-svg-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+#esc-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Content panel — right side, fixed position inside sticky */
+.esc-panel {
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 40%;
+  padding: 0 64px 0 32px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* Individual lines within a panel — scroll-driven reveal */
+.esc-line {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+.esc-line.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.esc-panel-step-label {
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 14px;
+  display: flex; align-items: center; gap: 10px;
+}
+.esc-panel-step-label::before {
+  content: '';
+  display: inline-block; width: 24px; height: 2px;
+  background: var(--gold);
+}
+.esc-panel-h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(24px, 3vw, 38px);
+  font-weight: 900; line-height: 1.1;
+  color: #fff; margin-bottom: 16px;
+  letter-spacing: -0.02em;
+}
+.esc-panel-body {
+  font-size: 14px; line-height: 1.75;
+  color: rgba(255,255,255,0.55); font-weight: 300;
+  margin-bottom: 28px;
+}
+.esc-stat-pill {
+  display: inline-flex; flex-direction: column;
+  background: rgba(0,56,255,0.15);
+  border: 1px solid rgba(0,56,255,0.4);
+  padding: 18px 22px;
+  border-radius: 3px; gap: 4px;
+  width: fit-content;
+}
+.esc-stat-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 40px; font-weight: 900; line-height: 1;
+  background: linear-gradient(90deg, var(--blue) 0%, var(--blue-mid) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.esc-stat-lbl {
+  font-size: 10px; font-weight: 600;
+  color: rgba(255,255,255,0.45); letter-spacing: 0.05em;
+}
+
+/* Panel transition — slide old out, slide new in */
+.esc-panel-block {
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 40%;
+  padding: 0 64px 0 32px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  opacity: 0;
+  transform: translateX(24px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  pointer-events: none;
+}
+.esc-panel-block.active {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+/* Progress bar along left edge of escalator section */
+#esc-progress-track {
+  position: absolute;
+  left: 60%; top: 15%; bottom: 15%;
+  width: 2px;
+  background: rgba(255,255,255,0.06);
+  z-index: 25;
+}
+#esc-progress-fill {
+  width: 100%;
+  height: 0%;
+  background: var(--gold);
+  transition: height 0.1s linear;
+}
+#esc-step-label {
+  position: absolute;
+  left: 60%; bottom: 13%;
+  transform: translateX(-50%);
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: rgba(255,255,255,0.25);
+  z-index: 25;
+  white-space: nowrap;
+}
+
+/* S5: PULLQUOTE — flush against escalator */
+#s-quote {
+  background: var(--navy);
+  min-height: 80vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 100px 56px;
+  text-align: center; flex-direction: column;
+  position: relative; overflow: hidden;
+  margin-top: 0;
+}
+#s-quote::before {
+  content: '';
+  position: absolute;
+  bottom: -60px; right: -80px;
+  width: 480px; height: 480px;
+  background: repeating-linear-gradient(
+    -16deg,
+    transparent 0px, transparent 26px,
+    rgba(0,56,255,0.05) 26px, rgba(0,56,255,0.05) 28px
+  );
+  pointer-events: none;
+}
+.quote-mark {
+  font-family: 'Playfair Display', serif;
+  font-size: 100px; line-height: 0.4;
+  color: var(--gold); opacity: 0.5;
+  display: block; margin-bottom: 28px;
+}
+blockquote {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(22px, 3.2vw, 38px);
+  font-weight: 700; font-style: italic;
+  line-height: 1.3; color: #fff;
+  max-width: 760px; margin-bottom: 28px;
+  opacity: 0; transform: translateY(16px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+blockquote.revealed { opacity: 1; transform: translateY(0); }
+cite {
+  font-style: normal; font-size: 10px; font-weight: 700;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--gold);
+  opacity: 0; transition: opacity 0.8s 0.3s ease;
+}
+cite.revealed { opacity: 1; }
+
+/* S6: MARKET CARDS */
+#s-market {
+  background: var(--offwhite);
+  padding: 120px 56px;
+}
+.market-inner { max-width: 960px; margin: 0 auto; }
+.market-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2px; margin-top: 56px;
+}
+.mcard {
+  background: #fff;
+  border-top: 3px solid var(--blue);
+  padding: 40px 36px;
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease, box-shadow 0.3s;
+}
+.mcard:hover { box-shadow: 0 8px 32px rgba(0,56,255,0.1); }
+.mcard.revealed { opacity: 1; transform: translateY(0); }
+.mcard-kicker {
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--blue); margin-bottom: 12px;
+}
+.mcard-h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; font-weight: 700;
+  color: var(--navy); margin-bottom: 12px; line-height: 1.2;
+}
+.mcard-body { font-size: 13px; line-height: 1.7; color: rgba(0,0,0,0.55); }
+
+/* S7: CLOSER */
+#s-close {
+  background: var(--dark);
+  min-height: 90vh;
+  display: flex; align-items: center;
+  padding: 160px 56px 160px 144px;
+  position: relative; overflow: hidden;
+}
+/* Escalator diagonal echo in background */
+#s-close::before {
+  content: '';
+  position: absolute;
+  top: -20%; right: -10%; bottom: -20%; left: 30%;
+  background: repeating-linear-gradient(
+    -16deg,
+    transparent 0px, transparent 40px,
+    rgba(0,56,255,0.03) 40px, rgba(0,56,255,0.03) 42px
+  );
+  pointer-events: none;
+}
+.close-kicker {
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 22px;
+  opacity: 0; transition: opacity 0.6s ease;
+}
+.close-kicker.revealed { opacity: 1; }
+.close-big {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(88px, 17vw, 192px);
+  font-weight: 900; line-height: 0.85;
+  letter-spacing: -0.04em;
+  background: linear-gradient(90deg, var(--blue) 0%, var(--blue-mid) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 32px;
+  opacity: 0; transform: scale(0.88);
+  transition: opacity 0.9s 0.1s ease, transform 0.9s 0.1s ease;
+}
+.close-big.revealed { opacity: 1; transform: scale(1); }
+.close-sub {
+  font-size: clamp(16px, 2.2vw, 24px);
+  font-weight: 300; color: rgba(255,255,255,0.5);
+  max-width: 480px; line-height: 1.6; margin-bottom: 52px;
+  opacity: 0; transition: opacity 0.7s 0.3s ease;
+}
+.close-sub.revealed { opacity: 1; }
+.cta-row {
+  display: flex; gap: 14px; flex-wrap: wrap;
+  opacity: 0; transition: opacity 0.7s 0.5s ease;
+}
+.cta-row.revealed { opacity: 1; }
+.btn-p {
+  background: var(--blue); color: #fff;
+  font-weight: 700; font-size: 11px; letter-spacing: 0.07em;
+  text-transform: uppercase; padding: 16px 32px;
+  border: none; border-radius: 3px;
+  text-decoration: none; display: inline-block;
+  transition: background 0.2s, transform 0.2s;
+}
+.btn-p:hover { background: var(--blue-mid); transform: translateY(-2px); }
+.btn-s {
+  background: transparent; color: rgba(255,255,255,0.6);
+  font-weight: 600; font-size: 11px; letter-spacing: 0.07em;
+  text-transform: uppercase; padding: 16px 32px;
+  border: 1px solid rgba(255,255,255,0.18); border-radius: 3px;
+  text-decoration: none; display: inline-block;
+  transition: border-color 0.2s, color 0.2s, transform 0.2s;
+}
+.btn-s:hover { border-color: rgba(255,255,255,0.5); color: #fff; transform: translateY(-2px); }
+
+/* FOOTER */
+footer {
+  background: #01091e;
+  padding: 36px 56px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 24px; flex-wrap: wrap;
+}
+.footer-logo { font-weight: 700; font-size: 14px; }
+.footer-logo span { color: var(--gold); }
+.footer-note { font-size: 10px; color: var(--gray); max-width: 460px; line-height: 1.6; }
+
+/* KEYFRAMES */
+@keyframes up {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* RESPONSIVE */
+@media (max-width: 860px) {
+  #left-rail { display: none; }
+  #floor-display { display: none; }
+  #s-hero, #s-timeline, #s-close { padding-left: 32px; }
+  .door-sidebar { display: none; }
+  .esc-panel { width: 52%; padding-right: 32px; }
+  .market-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress"><div id="progress-fill"></div></div>
+
+<nav>
+  <div class="logo"><span>●</span>Advent</div>
+  <div class="nav-tag">Thought Leadership</div>
+</nav>
+
+<div id="machine-label" class="visible">ELEVATOR</div>
+
+<!-- ════════════════════════════════════
+     LEFT RAIL
+════════════════════════════════════ -->
+<div id="left-rail">
+  <!-- Elevator shaft elements -->
+  <div class="shaft-cable c1"></div>
+  <div class="shaft-cable c2"></div>
+  <div class="shaft-cable c3"></div>
+  <div class="shaft-cable c4"></div>
+  <!-- Floor lines injected by JS -->
+  <div id="counterweight"></div>
+  <div id="elevator-car">
+    <div class="car-cable"></div>
+    <div class="car-body">
+      <div class="car-panel"></div>
+      <div class="car-panel p2"></div>
+      <div class="car-panel p3"></div>
+    </div>
+  </div>
+  <!-- Escalator elements (hidden until transition) -->
+  <div class="esc-rail-line er1"></div>
+  <div class="esc-rail-line er2"></div>
+  <div id="esc-handrail"></div>
+  <!-- Steps injected by JS -->
+</div>
+
+<div id="floor-display" class="visible">
+  <div class="floor-arrow">▲</div>
+  <div class="floor-screen">
+    <div class="floor-num" id="floor-num-display">G</div>
+  </div>
+  <div class="floor-lbl">Floor</div>
+</div>
+
+<!-- ════════════════════════════════════
+     S1 — HERO (ELEVATOR)
+════════════════════════════════════ -->
+<section id="s-hero">
+  <div>
+    <div class="hero-kicker">Advent International · Thought Leadership</div>
+    <h1 class="hero-h1">Up<br>&amp;<br><em>Up.</em></h1>
+    <p class="hero-sub">The vertical machines that quietly built the modern city — and why the market is only going higher.</p>
+  </div>
+  <div class="scroll-nudge">
+    <div class="nudge-car">
+      <div class="nudge-stripe"></div>
+      <div class="nudge-stripe"></div>
+      <div class="nudge-stripe"></div>
+    </div>
+    <span>Ride up</span>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════
+     S2 — ELEVATOR DOOR REVEALS
+════════════════════════════════════ -->
+<div id="s-doors-wrap">
+  <section id="s-doors">
+    <!-- Ambient floor number -->
+    <div class="ambient-floor" id="ambient-floor">G</div>
+
+    <!-- Big elevator car -->
+    <div class="big-elevator">
+      <div class="big-cables">
+        <div class="cable-line"></div>
+        <div class="cable-line"></div>
+        <div class="cable-line"></div>
+      </div>
+      <div class="big-floor-indicator">
+        <div class="bfi-arrow" id="bfi-arrow">▲</div>
+        <div class="bfi-num" id="bfi-num">G</div>
+      </div>
+      <div class="big-car-body">
+        <div class="door-reveal" id="door-reveal">
+          <div class="reveal-num" id="r-num">$[X]B</div>
+          <div class="reveal-label" id="r-label">Global market size</div>
+          <div class="reveal-sub" id="r-sub">Replace with sourced figure — [Year] estimate</div>
+        </div>
+        <div class="big-door left" id="big-door-l"></div>
+        <div class="big-door right" id="big-door-r"></div>
+      </div>
+      <div class="big-car-base"></div>
+    </div>
+
+    <!-- Sidebar copy -->
+    <div class="door-sidebar" id="door-sidebar">
+      <div class="sidebar-eyebrow" id="sb-eyebrow">Floor 1</div>
+      <h3 class="sidebar-h3" id="sb-h3">A market hiding in plain sight</h3>
+      <p class="sidebar-body" id="sb-body">Replace this with your editorial framing of the first stat — what it means, why it matters for the investment thesis.</p>
+    </div>
+  </section>
+</div>
+
+<!-- ════════════════════════════════════
+     S3 — FLOOR-BY-FLOOR TIMELINE
+════════════════════════════════════ -->
+<section id="s-timeline">
+  <div class="tl-header">
+    <div class="eyebrow">A brief history of going up</div>
+    <h2 class="section-h2">Floor by floor:<br>the moments that mattered</h2>
+    <div class="gold-bar"></div>
+  </div>
+  <div class="floors-grid">
+    <div class="floor-row">
+      <div class="fl-num-col"><span class="fl-num">B2</span><div class="fl-dot"></div></div>
+      <div class="fl-year-col"><span class="fl-year">1852</span></div>
+      <div class="fl-content-col">
+        <div class="fl-event">Otis invents the safety elevator</div>
+        <div class="fl-detail">The Crystal Palace demonstration — cutting the rope on his own occupied platform — marks the moment vertical transport becomes safe enough to commercialize. [Replace with your sourced detail.]</div>
+      </div>
+    </div>
+    <div class="floor-row">
+      <div class="fl-num-col"><span class="fl-num">01</span><div class="fl-dot"></div></div>
+      <div class="fl-year-col"><span class="fl-year">1885</span></div>
+      <div class="fl-content-col">
+        <div class="fl-event">Steel + elevator = the first true skyscraper</div>
+        <div class="fl-detail">The Home Insurance Building in Chicago combines structural steel with multi-car elevator systems. The formula unlocks every major skyline that follows. [Replace with sourced detail on urban density uplift.]</div>
+      </div>
+    </div>
+    <div class="floor-row">
+      <div class="fl-num-col"><span class="fl-num">10</span><div class="fl-dot"></div></div>
+      <div class="fl-year-col"><span class="fl-year">1889</span></div>
+      <div class="fl-content-col">
+        <div class="fl-event">The escalator goes public at the Paris Exposition</div>
+        <div class="fl-detail">First mass-scale public use of mechanical horizontal-vertical transport — not in a building, but as spectacle. The crowd-moving logic still governs every transit hub built today. [Replace with sourced detail.]</div>
+      </div>
+    </div>
+    <div class="floor-row">
+      <div class="fl-num-col"><span class="fl-num">30</span><div class="fl-dot"></div></div>
+      <div class="fl-year-col"><span class="fl-year">1930s</span></div>
+      <div class="fl-content-col">
+        <div class="fl-event">The skyscraper race redefines urban land value</div>
+        <div class="fl-detail">Empire State, Chrysler, Rockefeller Center — none exist without multi-car elevator systems. Vertical density becomes the engine of commercial real estate. [Replace with sourced data on floor premium pricing.]</div>
+      </div>
+    </div>
+    <div class="floor-row">
+      <div class="fl-num-col"><span class="fl-num">55</span><div class="fl-dot"></div></div>
+      <div class="fl-year-col"><span class="fl-year">1970s–90s</span></div>
+      <div class="fl-content-col">
+        <div class="fl-event">Post-war urbanization creates the maintenance economy</div>
+        <div class="fl-detail">The global installed base from the mid-century building boom begins aging into a multi-decade modernization cycle — non-discretionary demand, regardless of new construction. [Replace with installed base age data.]</div>
+      </div>
+    </div>
+    <div class="floor-row">
+      <div class="fl-num-col"><span class="fl-num">100</span><div class="fl-dot"></div></div>
+      <div class="fl-year-col"><span class="fl-year">Today</span></div>
+      <div class="fl-content-col">
+        <div class="fl-event">IoT and predictive maintenance: the software layer emerges</div>
+        <div class="fl-detail">Remote diagnostics and AI-driven downtime prediction are building a high-margin software business on top of the hardware install base. Service already outearns equipment for major OEMs. [Replace with margin data.]</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════
+     TRANSITION: ELEVATOR → ESCALATOR
+════════════════════════════════════ -->
+<section id="s-transition">
+  <div class="transition-label" id="tr-label" style="color:var(--navy);">Now boarding</div>
+  <h2 class="transition-h2" id="tr-h2" style="color:var(--navy);">The elevator got us up. The escalator keeps us moving.</h2>
+  <div class="machine-swap" id="machine-swap">
+    <div class="machine-icon active" id="mi-elev" style="color:var(--navy);">
+      <div class="icon-elevator"></div>
+      <span style="color:var(--blue);">Elevator</span>
+    </div>
+    <div class="swap-arrow" style="color:var(--navy);">→</div>
+    <div class="machine-icon" id="mi-esc" style="color:var(--navy);">
+      <svg width="52" height="36" viewBox="0 0 52 36" fill="none">
+        <path d="M4 32 L16 20 L28 20 L40 8 L48 8" stroke="#0038FF" stroke-width="2" stroke-linecap="round"/>
+        <rect x="16" y="20" width="12" height="4" fill="none" stroke="#0038FF" stroke-width="1.5"/>
+        <rect x="28" y="8" width="12" height="4" fill="none" stroke="#022479" stroke-width="1.5" opacity="0.4"/>
+      </svg>
+      <span style="color:var(--navy);">Escalator</span>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════
+     S4 — ESCALATOR RIDE (sticky, long dwell)
+════════════════════════════════════ -->
+<div id="s-esc-wrap">
+  <section id="s-esc">
+
+    <div id="esc-svg-wrap">
+      <svg id="esc-svg" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="treadGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#2a3a7a"/>
+            <stop offset="60%" stop-color="#1a2660"/>
+            <stop offset="100%" stop-color="#0d1840"/>
+          </linearGradient>
+          <linearGradient id="riserGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#111830"/>
+            <stop offset="100%" stop-color="#070e24"/>
+          </linearGradient>
+          <linearGradient id="trussTopGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#243080"/>
+            <stop offset="100%" stop-color="#1a2460"/>
+          </linearGradient>
+          <linearGradient id="trussBotGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#0d1640"/>
+            <stop offset="100%" stop-color="#070d28"/>
+          </linearGradient>
+          <linearGradient id="hrGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#444456"/>
+            <stop offset="40%" stop-color="#22222e"/>
+            <stop offset="100%" stop-color="#111118"/>
+          </linearGradient>
+          <filter id="softglow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="4" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <clipPath id="escClip">
+            <!-- Clip to the visible step area between the truss faces -->
+            <polygon points="-10,465  590,38  590,135  -10,560"/>
+          </clipPath>
+        </defs>
+        <ellipse cx="290" cy="350" rx="300" ry="140" fill="rgba(0,56,255,0.07)" filter="url(#softglow)"/>
+        <polygon points="0,460 580,40 580,80 0,500" fill="url(#trussTopGrad)" opacity="0.95"/>
+        <polygon points="0,500 580,80 580,130 0,550" fill="url(#trussBotGrad)" opacity="0.98"/>
+        <line x1="0" y1="460" x2="580" y2="40" stroke="rgba(100,150,255,0.5)" stroke-width="1.5"/>
+        <line x1="0" y1="550" x2="580" y2="130" stroke="rgba(38,154,255,0.12)" stroke-width="1"/>
+        <line x1="145" y1="365" x2="145" y2="510" stroke="rgba(38,154,255,0.1)" stroke-width="1"/>
+        <line x1="290" y1="270" x2="290" y2="420" stroke="rgba(38,154,255,0.1)" stroke-width="1"/>
+        <line x1="435" y1="175" x2="435" y2="325" stroke="rgba(38,154,255,0.1)" stroke-width="1"/>
+        <g id="steps-group" clip-path="url(#escClip)"></g>
+        <line x1="0" y1="458" x2="580" y2="38" stroke="#E1B523" stroke-width="5" stroke-dasharray="12,5" opacity="0.9"/>
+        <line x1="0" y1="470" x2="580" y2="50" stroke="#E1B523" stroke-width="3" stroke-dasharray="12,5" opacity="0.4"/>
+        <polygon points="0,450 580,30 580,78 0,498" fill="rgba(38,100,255,0.04)" stroke="rgba(38,154,255,0.12)" stroke-width="0.5"/>
+        <polygon points="50,435 200,340 205,343 55,438" fill="rgba(255,255,255,0.03)"/>
+        <path d="M -20,448 L 600,28" stroke="url(#hrGrad)" stroke-width="16" stroke-linecap="round" fill="none"/>
+        <path d="M -20,444 L 600,24" stroke="rgba(255,255,255,0.07)" stroke-width="5" stroke-linecap="round" fill="none"/>
+        <path id="hr-stripe-l" d="M -20,448 L 600,28" stroke="rgba(120,160,255,0.18)" stroke-width="7" stroke-dasharray="40,30" stroke-linecap="round" fill="none"/>
+        <path d="M -20,498 L 600,78" stroke="url(#hrGrad)" stroke-width="16" stroke-linecap="round" fill="none"/>
+        <path d="M -20,494 L 600,74" stroke="rgba(255,255,255,0.07)" stroke-width="5" stroke-linecap="round" fill="none"/>
+        <path id="hr-stripe-r" d="M -20,498 L 600,78" stroke="rgba(120,160,255,0.18)" stroke-width="7" stroke-dasharray="40,30" stroke-linecap="round" fill="none"/>
+        <rect x="-40" y="460" width="120" height="60" rx="2" fill="#111c50" stroke="rgba(38,154,255,0.35)" stroke-width="1"/>
+        <rect x="-40" y="460" width="120" height="6" fill="rgba(38,154,255,0.5)"/>
+        <rect x="-40" y="518" width="130" height="7" fill="#E1B523" opacity="0.75"/>
+        <line x1="-200" y1="520" x2="100" y2="520" stroke="rgba(38,154,255,0.15)" stroke-width="1"/>
+        <rect x="560" y="30" width="460" height="60" rx="2" fill="#111c50" stroke="rgba(38,154,255,0.35)" stroke-width="1"/>
+        <rect x="560" y="30" width="460" height="6" fill="rgba(38,154,255,0.5)"/>
+        <rect x="555" y="88" width="460" height="7" fill="#E1B523" opacity="0.75"/>
+        <line x1="550" y1="30" x2="1200" y2="30" stroke="rgba(38,154,255,0.15)" stroke-width="1"/>
+        <ellipse cx="30" cy="510" rx="70" ry="14" fill="rgba(0,56,255,0.2)" filter="url(#softglow)"/>
+        <ellipse cx="750" cy="66" rx="120" ry="10" fill="rgba(0,56,255,0.12)" filter="url(#softglow)"/>
+      </svg>
+    </div>
+
+    <!-- Thin gold progress bar on far right -->
+    <div id="esc-progress-track"><div id="esc-progress-fill"></div></div>
+
+    <!-- Panel 1 -->
+    <div class="esc-panel-block active" id="ep-1">
+      <div class="esc-line esc-panel-step-label">Step one</div>
+      <h2 class="esc-line esc-panel-h2">Urbanization is the tailwind that never stops</h2>
+      <p class="esc-line esc-panel-body">The urbanization wave in India, Southeast Asia, and secondary Chinese cities is creating secular demand for new vertical transport at scale. Every new metro station, shopping center, and residential tower needs escalators. The tailwind is structural, not cyclical.</p>
+      <div class="esc-line esc-stat-pill">
+        <div class="esc-stat-num">[X]%</div>
+        <div class="esc-stat-lbl">Projected CAGR through [Year] — replace with sourced data</div>
+      </div>
+    </div>
+    <!-- Panel 2 -->
+    <div class="esc-panel-block" id="ep-2">
+      <div class="esc-line esc-panel-step-label">Step two</div>
+      <h2 class="esc-line esc-panel-h2">Asia is building a city a week — all of them need lifts</h2>
+      <p class="esc-line esc-panel-body">[X]% of the global installed base now sits in Asia Pacific, and new-build pipeline data suggests that share will grow. This is first-time installation at scale, in markets still in the early innings of vertical infrastructure.</p>
+      <div class="esc-line esc-stat-pill">
+        <div class="esc-stat-num">[X]%</div>
+        <div class="esc-stat-lbl">Of global installed base in Asia Pacific — replace with sourced data</div>
+      </div>
+    </div>
+    <!-- Panel 3 -->
+    <div class="esc-panel-block" id="ep-3">
+      <div class="esc-line esc-panel-step-label">Step three</div>
+      <h2 class="esc-line esc-panel-h2">Service is where the real money moves</h2>
+      <p class="esc-line esc-panel-body">The most durable revenue isn't equipment sales — it's the maintenance contract signed the day the machine is commissioned. Long-duration, inflation-linked, nearly impossible to switch. Major OEMs now generate the majority of EBIT from service, not hardware.</p>
+      <div class="esc-line esc-stat-pill">
+        <div class="esc-stat-num">[X]yr</div>
+        <div class="esc-stat-lbl">Average replacement cycle — replace with sourced data</div>
+      </div>
+    </div>
+    <!-- Panel 4 -->
+    <div class="esc-panel-block" id="ep-4">
+      <div class="esc-line esc-panel-step-label">Step four</div>
+      <h2 class="esc-line esc-panel-h2">The smart escalator is already here</h2>
+      <p class="esc-line esc-panel-body">Predictive maintenance, remote diagnostics, and energy-recovery systems are building a software layer on top of the hardware install base. The escalator that runs on steps also runs on data — and that margin profile is very different from selling steel.</p>
+      <div class="esc-line esc-stat-pill">
+        <div class="esc-stat-num">[X]M</div>
+        <div class="esc-stat-lbl">Rides taken globally every day — replace with sourced data</div>
+      </div>
+    </div>
+
+  </section>
+</div>
+
+
+<!-- ════════════════════════════════════
+     S5 — PULLQUOTE
+════════════════════════════════════ -->
+<section id="s-quote">
+  <div>
+    <span class="quote-mark">"</span>
+    <blockquote id="main-quote">Without the elevator, there is no skyscraper. Without the escalator, there is no subway. Without either, there is no modern city — only a very tall, very exhausting village.</blockquote>
+    <cite id="main-cite">Replace with attributed source — analyst, executive, or Advent voice</cite>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════
+     S6 — MARKET CARDS
+════════════════════════════════════ -->
+<section id="s-market">
+  <div class="market-inner">
+    <div class="eyebrow" style="color:var(--blue);">Investment themes</div>
+    <h2 class="section-h2" style="color:var(--navy);max-width:660px;">Four reasons this market deserves a closer look</h2>
+    <div class="gold-bar" style="background:var(--blue);"></div>
+    <div class="market-grid">
+      <div class="mcard">
+        <div class="mcard-kicker">Theme one</div>
+        <h3 class="mcard-h3" style="color:var(--navy);">Aging installed base creates non-discretionary demand</h3>
+        <p class="mcard-body">[Placeholder: describe the wave of aging elevators and escalators in developed markets requiring modernization — average installation age, regulatory safety upgrade cycles, and the recurring service revenue this creates regardless of new build activity.]</p>
+      </div>
+      <div class="mcard">
+        <div class="mcard-kicker">Theme two</div>
+        <h3 class="mcard-h3" style="color:var(--navy);">Asia Pacific urbanization drives secular new-build volume</h3>
+        <p class="mcard-body">[Placeholder: describe the urbanization tailwind in India, Southeast Asia, and secondary Chinese cities. New residential tower starts, transit hub infrastructure, and government capex all require escalator and elevator systems at scale.]</p>
+      </div>
+      <div class="mcard">
+        <div class="mcard-kicker">Theme three</div>
+        <h3 class="mcard-h3" style="color:var(--navy);">Service contracts: the hidden annuity inside the hardware business</h3>
+        <p class="mcard-body">[Placeholder: describe the economics of elevator and escalator service contracts — long-duration, inflation-linked, high-margin, and highly sticky. Compare service vs. new equipment margin profiles across major OEMs.]</p>
+      </div>
+      <div class="mcard">
+        <div class="mcard-kicker">Theme four</div>
+        <h3 class="mcard-h3" style="color:var(--navy);">Smart systems and predictive maintenance as a tech premium</h3>
+        <p class="mcard-body">[Placeholder: describe the IoT and predictive maintenance opportunity — remote diagnostics, downtime reduction, energy recovery, and the software layer being built on top of the hardware install base. Where does the value accrue?]</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════
+     S7 — CLOSER
+════════════════════════════════════ -->
+<section id="s-close">
+  <div>
+    <div class="close-kicker" id="cl-ey">The bottom line</div>
+    <div class="close-big" id="cl-big">[X]B<br>rides.</div>
+    <p class="close-sub" id="cl-sub">Taken every single day, in every city on earth. Up escalators in stations. Up elevators in towers. The infrastructure of modern life has always moved vertically — and the investment opportunity is hiding one floor at a time.</p>
+    <div class="cta-row" id="cl-cta">
+      <a href="#" class="btn-p">Download the full report</a>
+      <a href="#" class="btn-s">Contact the team</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo"><span>●</span>Advent International</div>
+  <p class="footer-note">For informational purposes only. All statistics shown are placeholders — replace with sourced data before publication. © Advent International. All rights reserved.</p>
+</footer>
+
+<script>
+/* ─────────────────────────────────────
+   SETUP
+───────────────────────────────────── */
+const $ = id => document.getElementById(id);
+
+// Floor lines in shaft
+const rail = $('left-rail');
+const NUM_FLOOR_LINES = 14;
+for (let i = 0; i < NUM_FLOOR_LINES; i++) {
+  const l = document.createElement('div');
+  l.className = 'shaft-floor-line';
+  l.style.top = (i / NUM_FLOOR_LINES * 100) + 'vh';
+  rail.appendChild(l);
+}
+
+// Escalator steps in rail
+const NUM_RAIL_STEPS = 16;
+const railSteps = [];
+for (let i = 0; i < NUM_RAIL_STEPS; i++) {
+  const s = document.createElement('div');
+  s.className = 'rail-step';
+  s.innerHTML = `<div class="rail-step-riser"></div><div class="rail-step-tread"></div><div class="rail-step-shine"></div>`;
+  rail.appendChild(s);
+  railSteps.push(s);
+}
+
+// ── SVG ESCALATOR STEPS ──
+// Side-on view: steps drawn as proper staircase boxes moving up the incline.
+// Each step = a horizontal tread + vertical riser, stacked like real stairs.
+// They march from bottom-left to top-right continuously as you scroll.
+const svgNS = 'http://www.w3.org/2000/svg';
+const stepsGroup = document.getElementById('steps-group');
+
+// How many pixels each step advances horizontally and vertically (SVG units)
+const TREAD_W = 46;   // horizontal width of each tread
+const RISER_H = 20;   // vertical height of each riser
+const NUM_SVG_STEPS = 32; // enough to fill the belt + overflow for looping
+
+// Build step DOM elements — each is a group with tread polygon + riser rect
+const svgSteps = [];
+for (let i = 0; i < NUM_SVG_STEPS; i++) {
+  const g = document.createElementNS(svgNS, 'g');
+
+  // Riser (vertical face — darker)
+  const riser = document.createElementNS(svgNS, 'rect');
+  riser.setAttribute('x', '0');
+  riser.setAttribute('y', '0');
+  riser.setAttribute('width', TREAD_W.toString());
+  riser.setAttribute('height', RISER_H.toString());
+  riser.setAttribute('fill', 'url(#riserGrad)');
+  riser.setAttribute('stroke', 'rgba(38,154,255,0.25)');
+  riser.setAttribute('stroke-width', '0.5');
+
+  // Tread (horizontal top face — lighter)
+  const tread = document.createElementNS(svgNS, 'rect');
+  tread.setAttribute('x', '0');
+  tread.setAttribute('y', (-RISER_H * 0.45).toString());
+  tread.setAttribute('width', TREAD_W.toString());
+  tread.setAttribute('height', (RISER_H * 0.45).toString());
+  tread.setAttribute('fill', 'url(#treadGrad)');
+  tread.setAttribute('stroke', 'rgba(100,150,255,0.3)');
+  tread.setAttribute('stroke-width', '0.5');
+
+  // Front lip highlight
+  const lip = document.createElementNS(svgNS, 'line');
+  lip.setAttribute('x1', '1');
+  lip.setAttribute('y1', (-RISER_H * 0.45 + 0.5).toString());
+  lip.setAttribute('x2', (TREAD_W - 1).toString());
+  lip.setAttribute('y2', (-RISER_H * 0.45 + 0.5).toString());
+  lip.setAttribute('stroke', 'rgba(160,210,255,0.7)');
+  lip.setAttribute('stroke-width', '1.5');
+
+  // Yellow safety strip on tread front edge
+  const safety = document.createElementNS(svgNS, 'rect');
+  safety.setAttribute('x', '0');
+  safety.setAttribute('y', (-RISER_H * 0.45 - 2).toString());
+  safety.setAttribute('width', TREAD_W.toString());
+  safety.setAttribute('height', '2');
+  safety.setAttribute('fill', '#E1B523');
+  safety.setAttribute('opacity', '0.7');
+
+  g.appendChild(riser);
+  g.appendChild(tread);
+  g.appendChild(lip);
+  g.appendChild(safety);
+  stepsGroup.appendChild(g);
+  svgSteps.push(g);
+}
+
+let svgStepOffset = 0;
+// Total pixel distance one full loop travels (one step pitch = TREAD_W horizontally, RISER_H vertically)
+const LOOP_W = TREAD_W * NUM_SVG_STEPS;
+const LOOP_H = RISER_H * NUM_SVG_STEPS;
+
+function updateSVGSteps(delta) {
+  // Each scroll px moves steps by this much along the incline
+  svgStepOffset = (svgStepOffset + delta * 0.7) % NUM_SVG_STEPS;
+  if (svgStepOffset < 0) svgStepOffset += NUM_SVG_STEPS;
+
+  svgSteps.forEach((g, i) => {
+    // Each step's base index — scroll shifts all steps together
+    const pos = (i - svgStepOffset + NUM_SVG_STEPS) % NUM_SVG_STEPS;
+
+    // Map to SVG coordinates: start at bottom-left (x=0, y=460), move up-right
+    // Each step occupies (TREAD_W, -RISER_H) relative to previous
+    const bx = pos * TREAD_W;
+    const by = 460 - pos * RISER_H;
+
+    g.setAttribute('transform', `translate(${bx.toFixed(1)},${by.toFixed(1)})`);
+
+    // Fade at edges so loop is seamless
+    const edge = Math.min(pos, NUM_SVG_STEPS - 1 - pos);
+    const opacity = Math.min(1, edge / 3);
+    g.setAttribute('opacity', opacity.toFixed(2));
+  });
+}
+
+// Animate handrail stripes (dashoffset trick)
+let hrOffset = 0;
+function updateHandrailStripes(delta) {
+  hrOffset -= delta * 0.4;
+  const strL = document.getElementById('hr-stripe-l');
+  const strR = document.getElementById('hr-stripe-r');
+  if (strL) strL.setAttribute('stroke-dashoffset', hrOffset.toFixed(1));
+  if (strR) strR.setAttribute('stroke-dashoffset', hrOffset.toFixed(1));
+}
+
+/* ─────────────────────────────────────
+   STATE
+───────────────────────────────────── */
+const DOOR_STATS = [
+  { num: '$[X]B',  label: 'Global elevator & escalator market',   sub: 'Replace with sourced market size — [Year] estimate',          sb_ey: 'Floor 1', sb_h3: 'A market hiding in plain sight',       sb_b: 'Replace with editorial framing for this stat.',      floor: '1'  },
+  { num: '[X]M',   label: 'Elevator rides taken globally per day', sub: 'More people ride elevators each day than fly in a year',      sb_ey: 'Floor 2', sb_h3: 'The most-used machine nobody thinks about', sb_b: 'Replace with your editorial take on daily ride volume.', floor: '2'  },
+  { num: '[X]%',   label: 'Projected CAGR through [Year]',         sub: 'Driven by urbanization, aging assets, and safety retrofits',  sb_ey: 'Floor 3', sb_h3: 'The growth rate that surprises analysts',   sb_b: 'Replace with context on what drives the growth multiple.', floor: '3' },
+];
+
+const ESC_PANELS = ['ep-1','ep-2','ep-3','ep-4'];
+let lastDoorState    = null;
+let lastDoorStatIdx  = -1;
+let lastEscPanel     = -1;
+let railStepOffset   = 0;
+let escLineOffset    = 0;
+let lastScrollY      = 0;
+let inEscMode        = false;
+
+/* ─────────────────────────────────────
+   SECTION BOUNDARIES
+───────────────────────────────────── */
+function getBounds(id) {
+  const el = $(id);
+  if (!el) return { top: 0, bottom: 0 };
+  const top = el.getBoundingClientRect().top + window.scrollY;
+  return { top, bottom: top + el.offsetHeight };
+}
+
+/* ─────────────────────────────────────
+   MAIN SCROLL HANDLER
+───────────────────────────────────── */
+function onScroll() {
+  const scrollY = window.scrollY;
+  const total   = document.documentElement.scrollHeight - window.innerHeight;
+  const ratio   = Math.max(0, Math.min(1, scrollY / total));
+  const delta   = scrollY - lastScrollY;
+
+  // Progress bar
+  $('progress-fill').style.width = (ratio * 100) + '%';
+
+  // Decide which half we're in
+  const transBottom = getBounds('s-transition').bottom;
+  const nowEsc = scrollY > transBottom - window.innerHeight * 0.5;
+
+  if (nowEsc !== inEscMode) {
+    inEscMode = nowEsc;
+    switchMachineMode(nowEsc);
+  }
+
+  // Rail animation
+  if (!inEscMode) {
+    animateElevatorRail(scrollY, delta);
+  } else {
+    animateEscalatorRail(delta);
+  }
+
+  // Floor display
+  updateFloorDisplay(scrollY);
+
+  // Door section
+  animateDoors(scrollY);
+
+  // Escalator panels — pass delta so steps move
+  animateEscPanels(scrollY, delta);
+
+  // Transition section
+  animateTransition(scrollY);
+
+  // Reveal-on-scroll
+  revealAll(scrollY);
+
+  lastScrollY = scrollY;
+}
+
+/* ─────────────────────────────────────
+   MACHINE MODE SWITCH
+───────────────────────────────────── */
+function switchMachineMode(toEsc) {
+  // Rail: cables/car fade out, escalator rails/steps fade in
+  document.querySelectorAll('.shaft-cable, .shaft-floor-line').forEach(el => {
+    el.style.opacity = toEsc ? '0' : '1';
+  });
+  $('elevator-car').style.opacity    = toEsc ? '0' : '1';
+  $('counterweight').style.opacity   = toEsc ? '0' : '1';
+  document.querySelectorAll('.esc-rail-line').forEach(el => {
+    el.style.opacity = toEsc ? '1' : '0';
+  });
+  railSteps.forEach(s => { s.style.opacity = toEsc ? '1' : '0'; });
+  $('esc-handrail').style.opacity    = toEsc ? '1' : '0';
+
+  // Label
+  $('machine-label').textContent = toEsc ? 'ESCALATOR' : 'ELEVATOR';
+
+  // Background of rail
+  $('left-rail').style.background = toEsc
+    ? 'linear-gradient(to right, rgba(1,8,28,0.92) 0%, rgba(1,8,28,0.7) 80%, transparent 100%)'
+    : 'linear-gradient(to right, rgba(1,8,28,0.96) 0%, rgba(1,8,28,0.7) 80%, transparent 100%)';
+
+  // Transition icons
+  $('mi-elev').classList.toggle('active', !toEsc);
+  $('mi-esc').classList.toggle('active', toEsc);
+
+  // Floor arrow
+  document.querySelector('.floor-arrow').textContent = toEsc ? '→' : '▲';
+}
+
+/* ─────────────────────────────────────
+   ELEVATOR RAIL ANIMATION
+───────────────────────────────────── */
+function animateElevatorRail(scrollY, delta) {
+  const vh = window.innerHeight;
+  // Map scrollY to car position: bottom of viewport → top
+  const maxScroll = getBounds('s-transition').top;
+  const t = Math.max(0, Math.min(1, scrollY / maxScroll));
+  // Car goes from bottom to top of rail
+  const carTop = vh * 0.85 - t * (vh * 0.75);
+  $('elevator-car').style.transform = `translateY(${carTop}px)`;
+  // Counterweight goes opposite
+  $('counterweight').style.transform = `translateY(${vh * 0.1 + t * (vh * 0.75)}px)`;
+}
+
+/* ─────────────────────────────────────
+   ESCALATOR RAIL ANIMATION
+───────────────────────────────────── */
+function animateEscalatorRail(delta) {
+  const vh = window.innerHeight;
+  railStepOffset += delta * 0.5;
+
+  railSteps.forEach((s, i) => {
+    const base = i * (vh / NUM_RAIL_STEPS);
+    const pos  = ((base - railStepOffset) % vh + vh) % vh;
+    s.style.top = pos + 'px';
+    const edge = Math.min(pos, vh - pos);
+    s.style.opacity = Math.min(1, edge / 50).toString();
+  });
+
+  // Handrail scrolls at same speed
+  const hrPos = ((railStepOffset * 0.9) % 80 + 80) % 80;
+  $('esc-handrail').style.top = (window.innerHeight * 0.5 - 7 - hrPos) + 'px';
+}
+
+/* ─────────────────────────────────────
+   FLOOR DISPLAY
+───────────────────────────────────── */
+const FLOOR_MAP = [
+  { id: 's-hero',       label: 'G'   },
+  { id: 's-doors-wrap', label: '1'   },
+  { id: 's-timeline',   label: '5'   },
+  { id: 's-transition', label: '10'  },
+  { id: 's-esc-wrap',   label: '↗'  },
+  { id: 's-quote',      label: '20'  },
+  { id: 's-market',     label: '25'  },
+  { id: 's-close',      label: '30'  },
+];
+
+function updateFloorDisplay(scrollY) {
+  const mid = scrollY + window.innerHeight * 0.5;
+  let label = 'G';
+  for (const f of FLOOR_MAP) {
+    const el = $(f.id);
+    if (!el) continue;
+    if (el.getBoundingClientRect().top + scrollY <= mid) label = f.label;
+  }
+  $('floor-num-display').textContent = label;
+}
+
+/* ─────────────────────────────────────
+   DOOR REVEALS
+───────────────────────────────────── */
+function animateDoors(scrollY) {
+  const wrap  = $('s-doors-wrap');
+  const rect  = wrap.getBoundingClientRect();
+  const total = wrap.offsetHeight - window.innerHeight;
+  if (total <= 0) return;
+  const p = Math.max(0, Math.min(1, -rect.top / total));
+
+  // 3 open/close cycles across the section
+  // Each cycle: close 0→0.1, open 0.1→0.5, close 0.5→0.6, open 0.6→1.0 etc.
+  const thresholds = [
+    { p: 0,    open: false, idx: 0, floor: 'G' },
+    { p: 0.08, open: true,  idx: 0, floor: '1' },
+    { p: 0.38, open: false, idx: 1, floor: '1' },
+    { p: 0.46, open: true,  idx: 1, floor: '2' },
+    { p: 0.72, open: false, idx: 2, floor: '2' },
+    { p: 0.80, open: true,  idx: 2, floor: '3' },
+  ];
+
+  let phase = thresholds[0];
+  for (const t of thresholds) { if (p >= t.p) phase = t; }
+
+  const key = `${phase.open}-${phase.idx}`;
+  if (key === lastDoorState) return;
+  lastDoorState = key;
+
+  // Update stat if closing (swap while hidden)
+  if (!phase.open) {
+    const s = DOOR_STATS[phase.idx];
+    $('r-num').textContent   = s.num;
+    $('r-label').textContent = s.label;
+    $('r-sub').textContent   = s.sub;
+    $('sb-eyebrow').textContent = s.sb_ey;
+    $('sb-h3').textContent      = s.sb_h3;
+    $('sb-body').textContent    = s.sb_b;
+    $('ambient-floor').textContent = s.floor;
+    $('bfi-num').textContent       = s.floor;
+    $('door-reveal').classList.remove('visible');
+    $('door-sidebar').classList.remove('visible');
+  }
+
+  $('big-door-l').classList.toggle('open', phase.open);
+  $('big-door-r').classList.toggle('open', phase.open);
+  if (phase.open) {
+    setTimeout(() => {
+      $('door-reveal').classList.add('visible');
+      $('door-sidebar').classList.add('visible');
+    }, 700);
+  }
+}
+
+/* ─────────────────────────────────────
+   ESCALATOR PANELS + SVG STEPS
+───────────────────────────────────── */
+
+function animateEscPanels(scrollY, delta) {
+  const wrap = $('s-esc-wrap');
+  if (!wrap) return;
+  const rect  = wrap.getBoundingClientRect();
+  const total = wrap.offsetHeight - window.innerHeight;
+  if (total <= 0) return;
+  const p = Math.max(0, Math.min(1, -rect.top / total));
+
+  // Always drive steps while in section
+  updateSVGSteps(delta);
+  updateHandrailStripes(delta);
+
+  // Progress bar
+  const pf = $('esc-progress-fill');
+  if (pf) pf.style.height = (p * 100) + '%';
+
+  // Panel switching — 4 equal quarters, with staggered line reveals
+  const idx = Math.min(ESC_PANELS.length - 1, Math.floor(p * ESC_PANELS.length));
+
+  if (idx !== lastEscPanel) {
+    lastEscPanel = idx;
+
+    // Swap panels
+    ESC_PANELS.forEach((id, i) => {
+      const el = $(id);
+      if (!el) return;
+      el.classList.toggle('active', i === idx);
+      if (i === idx) {
+        // Reset then stagger-reveal each line
+        const lines = el.querySelectorAll('.esc-line');
+        lines.forEach(l => l.classList.remove('visible'));
+        lines.forEach((l, li) => {
+          setTimeout(() => l.classList.add('visible'), li * 110 + 60);
+        });
+      }
+    });
+  }
+}
+
+/* ─────────────────────────────────────
+   TRANSITION SECTION REVEALS
+───────────────────────────────────── */
+function animateTransition(scrollY) {
+  const el = $('s-transition');
+  if (!el) return;
+  const rect = el.getBoundingClientRect();
+  if (rect.top < window.innerHeight * 0.75) {
+    $('tr-label')?.classList.add('revealed');
+    $('tr-h2')?.classList.add('revealed');
+    $('machine-swap')?.classList.add('revealed');
+  }
+}
+
+/* ─────────────────────────────────────
+   GENERAL REVEAL ON SCROLL
+───────────────────────────────────── */
+function revealAll(scrollY) {
+  const vh = window.innerHeight;
+
+  // Floor rows
+  document.querySelectorAll('.floor-row').forEach(el => {
+    if (el.getBoundingClientRect().top < vh * 0.87) el.classList.add('revealed');
+  });
+
+  // Market cards — staggered
+  document.querySelectorAll('.mcard').forEach((el, i) => {
+    if (el.getBoundingClientRect().top < vh * 0.87) {
+      setTimeout(() => el.classList.add('revealed'), i * 80);
+    }
+  });
+
+  // Quote
+  const q = $('main-quote');
+  if (q && q.getBoundingClientRect().top < vh * 0.78) {
+    q.classList.add('revealed');
+    $('main-cite')?.classList.add('revealed');
+  }
+
+  // Closer
+  const cb = $('cl-big');
+  if (cb && cb.getBoundingClientRect().top < vh * 0.85) {
+    $('cl-ey')?.classList.add('revealed');
+    cb.classList.add('revealed');
+    $('cl-sub')?.classList.add('revealed');
+    $('cl-cta')?.classList.add('revealed');
+  }
+}
+
+// Stagger floor rows
+document.querySelectorAll('.floor-row').forEach((el, i) => {
+  el.style.transitionDelay = `${i * 0.055}s`;
+});
+
+// Trigger line reveals for first panel on load
+setTimeout(() => {
+  const first = $('ep-1');
+  if (first) {
+    first.querySelectorAll('.esc-line').forEach((l, i) => {
+      setTimeout(() => l.classList.add('visible'), i * 110 + 200);
+    });
+  }
+}, 100);
+
+window.addEventListener('scroll', onScroll, { passive: true });
+window.addEventListener('resize', onScroll);
+onScroll();
+</script>
+</body>
+</html>
